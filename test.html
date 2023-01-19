@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!-- Author: Indranil012 -->
+<html>
+  <head>
+    <title>test html</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <style>
+      /*   td, th {border:1px solid black;}; */
+    </style>
+  </head>
+
+  <body>
+    <div
+      style="background-color: #e9eff1; border-radius: 15px; padding: 0.5rem"
+    >
+      <table
+        style="
+          table-layout: fixed;
+          width: 100%;
+          max-width: 500px;
+          margin: auto;
+          font-size: 0.5rem;
+          border-collapse: collapse;
+        "
+      >
+        <tr>
+          <td>
+            <table>
+              <tr>
+                <td style="margin: auto; text-align: left; width: 100%">
+                  <h1>TEST MAIL FROM PYTHON</h1>
+                </td>
+
+                <td style="margin: auto; text-align: right">
+                  <img src="cid:{{ img_path }}" alt="banana" height="50" />
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Hi {{ Name }},<br />
+            &nbsp;&nbsp;&nbsp;&nbsp; This is a html email.<br />
+            Test for new line. your mail id is {{ email }}<br />
+            some text :<br />
+            the main body of matter in a manuscript, book, newspaper, etc., as
+            distinguished from notes, appendixes, headings, illustrations,
+            etc<br />
+            <br />
+            the original words of an author or speaker, as opposed to a
+            translation, paraphrase, commentary, or the like: The newspaper
+            published the whole text of the speech. the actual wording of
+            anything written or printed: You have not kept to the text of my
+            remarks.
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>
+              Have a banana &nbsp;&nbsp;
+              <img src="cid:{{ sig_path }}" alt="banana" height="50" />
+            </h3>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
