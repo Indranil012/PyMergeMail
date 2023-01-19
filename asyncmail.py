@@ -10,7 +10,7 @@ import asyncio
 import json
 from email.message import EmailMessage
 from email.utils import make_msgid
-import smtplib
+import aiosmtplib
 from jinja2 import (Environment,
                     FileSystemLoader,
                     select_autoescape,
@@ -115,6 +115,8 @@ class PyMergeEmail:
         msg["From"] = f"{self.cred_dict['alias']}<{self.cred_dict['email']}>"
         msg["Subject"] = self.subject.render(context)
         msg["To"] = f"{row['name']}<{row['email']}>"
+        msg["Cc"] = row['cc']
+        msg["Bcc"] = row['bcc']
 
         msg.set_content("""
             This is a HTML mail please use supported client to render properly
@@ -160,10 +162,11 @@ class PyMergeEmail:
         """
             todo
         """
-        smtp = smtplib.SMTP_SSL(host="smtp.gmail.com",
-                                port=465)
-        smtp.login(self.cred_dict['email'],
-                   self.cred_dict['pass'])
+        smtp = aiosmtplib.SMTP(hostname="smtp.gmail.com",
+                               username=self.cred_dict['email'],
+                               password=self.cred_dict['pass'],
+                               )
+        await smtp.connect()
         print("loged in")
 
         return smtp
@@ -173,9 +176,9 @@ class PyMergeEmail:
             todo
         """
         try:
-            smtp.send_message(msg,
-                              self.cred_dict['email'],
-                              email)
+            await smtp.send_message(msg,
+                                    self.cred_dict['email'],
+                                    email,)
             print(f"Mail sent to {email}")
 
         except Exception as identifier:
@@ -185,21 +188,21 @@ class PyMergeEmail:
         """
             main function
         """
-        # self.show_cred()
+        self.show_cred()
         # await self.change_cred()
+        smtp = await self.login()
         emails_msg = await self.get_msg()
         # print(f"printing emails_msg dict\n{emails_msg}")
-        smtp = await self.login()
         for email, msg in emails_msg.items():
             await self.send_mail(smtp, msg, email)
 
         print("all done!")
-        smtp.quit()
+        await smtp.quit()
 
 
 if __name__ == "__main__":
     CRED_FILE_PATH = full_path("key.json")
-    DATA_FILE_PATH = full_path("example_data.xlsx")
+    DATA_FILE_PATH = full_path("source_data.xlsx")
     TEMPLATE_DIRECTORY_PATH = os.getcwd() # body, subject directory path
     SUBJECT_FILE_NAME = "subject.txt"
     BODY_FILE_NAME = "test.html"
