@@ -115,12 +115,13 @@ class PyMergeEmail:
         msg["From"] = f"{self.cred_dict['alias']}<{self.cred_dict['email']}>"
         msg["Subject"] = self.subject.render(context)
         msg["To"] = f"{row['name']}<{row['email']}>"
-        msg["Cc"] = row['cc']
+        msg["cc"] = row['cc']
         msg["Bcc"] = row['bcc']
 
         msg.set_content("""
             This is a HTML mail please use supported client to render properly
                         """)
+        print(msg)
 
         body = self.body.render(context)
         msg.add_alternative(body, "html")
@@ -142,7 +143,6 @@ class PyMergeEmail:
                                maintype="application",
                                subtype="octet-stream",
                                filename=os.path.basename(file))
-        # print(hash(msg))
 
         return msg
 
@@ -176,9 +176,7 @@ class PyMergeEmail:
             todo
         """
         try:
-            await smtp.send_message(msg,
-                                    self.cred_dict['email'],
-                                    email,)
+            await smtp.send_message(msg)
             print(f"Mail sent to {email}")
 
         except Exception as identifier:

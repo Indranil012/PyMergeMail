@@ -117,6 +117,8 @@ class PyMergeEmail:
         msg["From"] = f"{self.cred_dict['alias']}<{self.cred_dict['email']}>"
         msg["Subject"] = self.subject.render(context)
         msg["To"] = f"{row['name']}<{row['email']}>"
+        msg["cc"] = row['cc']
+        msg["Bcc"] = row['bcc']
         msg.set_content(
             "This is a HTML mail please use supported client to render properly"
         )
@@ -160,10 +162,7 @@ class PyMergeEmail:
             for _, row in self.df.iterrows():
                 msg = self.email_details(row)
                 print(f"sending mail to {row['email']}")
-                smtp.send_message(msg,
-                                  from_addr=self.cred_dict["email"],
-                                  to_addrs=row["email"]
-                     )
+                smtp.send_message(msg)
                 print (f"mail sent to {row['email']}")
 
         print("all done!")
