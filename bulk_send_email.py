@@ -38,7 +38,7 @@ def full_path(path):
     """
     return f"{os.getcwd()}/{path}"
 
-class PyMergeEmail:
+class PyMergeMail:
     """
     main class
     """
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     BODY_FILE_NAME = "test.html"
     CID_FIELDS = ["img_path", "sig_path"]
 
-    user1 = PyMergeEmail(CRED_FILE_PATH,
+    user1 = PyMergeMail(CRED_FILE_PATH,
                          DATA_FILE_PATH,
                          TEMPLATE_DIRECTORY_PATH,
                          SUBJECT_FILE_NAME,
