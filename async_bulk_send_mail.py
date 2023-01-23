@@ -64,6 +64,9 @@ class PyMergeMail:
         parsed_content = env.parse(body_source + subject_source)
         self.variables = meta.find_undeclared_variables(parsed_content)
 
+        self.count_successful = 0
+        self.count_unsuccessful = 0
+
         with open(self.cred_file_path, encoding="UTF-8") as cred_file:
             self.cred_dict = json.load(cred_file)
 
@@ -121,7 +124,6 @@ class PyMergeMail:
         msg.set_content("""
             This is a HTML mail please use supported client to render properly
                         """)
-        print(msg)
 
         body = self.body.render(context)
         msg.add_alternative(body, "html")
@@ -178,9 +180,11 @@ class PyMergeMail:
         try:
             await smtp.send_message(msg)
             print(f"Mail sent to {email}")
+            self.count_successful += 1
 
         except Exception as identifier:
             print(f"Failed to send mail to {email}\n{identifier}")
+            self.count_unsuccessful += 1
 
     async def main(self):
         """
@@ -191,11 +195,19 @@ class PyMergeMail:
         smtp = await self.login()
         emails_msg = await self.get_msg()
         # print(f"printing emails_msg dict\n{emails_msg}")
+
+        total_email = 0
+
         for email, msg in emails_msg.items():
             await self.send_mail(smtp, msg, email)
+            total_email += 1
 
-        print("all done!")
         await smtp.quit()
+
+        if self.count_unsuccessful == 0:
+            print(f"{self.count_successful}/{total_email} Mail successfully sent ")
+        else:
+            print(f"{self.count_unsuccessful}/{total_email} Mail couldn't be sent ")
 
 
 if __name__ == "__main__":
@@ -215,4 +227,4 @@ if __name__ == "__main__":
             )
     # loop = asyncio.get_event_loop()
     # loop.run_until_complete(user1.main())
-    asyncio.run(main=user1.main(), debug=True)
+    asyncio.run(main=user1.main())
