@@ -2,7 +2,7 @@
 this module can send bulk personalized mail with excel data
 
 Author: Indranil012
-version: 7.0
+version: 0.0.2
 """
 
 import os
@@ -70,7 +70,7 @@ class PyMergeMail:
         with open(self.cred_file_path, encoding="UTF-8") as cred_file:
             self.cred_dict = json.load(cred_file)
 
-    def show_cred(self):
+    async def show_cred(self):
         """
             print cred on terminal
         """
@@ -190,7 +190,7 @@ class PyMergeMail:
         """
             main function
         """
-        self.show_cred()
+        await self.show_cred()
         # await self.change_cred()
         smtp = await self.login()
         emails_msg = await self.get_msg()
@@ -207,6 +207,7 @@ class PyMergeMail:
         if self.count_unsuccessful == 0:
             print(f"{self.count_successful}/{total_email} Mail successfully sent ")
         else:
+            print(f"{self.count_successful}/{total_email} Mail successfully sent and")
             print(f"{self.count_unsuccessful}/{total_email} Mail couldn't be sent ")
 
 
