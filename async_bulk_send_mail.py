@@ -47,15 +47,12 @@ async def get_template(file_path, var_only=False):
                       autoescape=select_autoescape())
     file_name = os.path.basename(file_path)
 
-    final_obj = None
     if var_only is True:
         source = env.loader.get_source(env, file_name)
         parced_content = env.parse(source)
-        final_obj = meta.find_undeclared_variables(parced_content)
-    else:
-        final_obj = env.get_template(file_name)
+        return meta.find_undeclared_variables(parced_content)
 
-    return final_obj
+    return env.get_template(file_name)
 
 async def get_context(row,
                       subject_file_path,
