@@ -4,3 +4,6 @@ good-names=df,
 
 [DESIGN]
 max-args=10
+
+[MESSAGES-CONTROL]
+disable=broad-except

@@ -17,19 +17,6 @@ from jinja2 import (Environment,
                     meta)
 import pandas as pd
 
-# def check_input(message):
-#     """
-#         loop until input key match
-#     """
-#     input_keys = ["y", "n"]
-#     input_key = None
-#     while input_key not in input_keys:
-#         input_key = input(message).lower()
-#         if input_key not in input_keys:
-#             print("invalid input key")
-#
-#     return input_key
-
 async def cred(cred_file_path, change=False):
     """
         print cred on terminal
@@ -60,19 +47,20 @@ async def get_template(file_path, var_only=False):
                       autoescape=select_autoescape())
     file_name = os.path.basename(file_path)
 
+    final_obj = None
     if var_only is True:
         source = env.loader.get_source(env, file_name)
         parced_content = env.parse(source)
-        return meta.find_undeclared_variables(parced_content)
-
+        final_obj = meta.find_undeclared_variables(parced_content)
     else:
-        return env.get_template(file_name)
+        final_obj = env.get_template(file_name)
+
+    return final_obj
 
 async def get_context(row,
                       subject_file_path,
                       body_file_path,
-                      cid_fields,
-                      ):
+                      cid_fields):
     """
         obtain required info from excel
     """
@@ -98,8 +86,7 @@ async def setup_msg(row,
                     subject_file_path,
                     body_file_path,
                     cred_dict,
-                    cid_fields,
-                    ):
+                    cid_fields):
     """
         set email details
     """
@@ -146,8 +133,7 @@ async def get_msg(data_file_path,
                   subject_file_path,
                   body_file_path,
                   cred_dict,
-                  cid_fields,
-                  ):
+                  cid_fields):
     """
        get address(str) : msg(obj) dict.
     """
@@ -160,8 +146,7 @@ async def get_msg(data_file_path,
                               subject_file_path,
                               body_file_path,
                               cred_dict,
-                              cid_fields,
-                              )
+                              cid_fields)
 
         emails_msg[row['email']] = msg
         print(f"sending mail to {row['email']}")
@@ -174,8 +159,7 @@ async def login(cred_dict):
     """
     smtp = aiosmtplib.SMTP(hostname="smtp.gmail.com",
                            username=cred_dict['email'],
-                           password=cred_dict['pass'],
-                      )
+                           password=cred_dict['pass'])
     await smtp.connect()
     print("loged in")
 
@@ -196,8 +180,7 @@ async def main(cred_file_path,
                data_file_path,
                subject_file_path,
                body_file_path,
-               cid_fields,
-               ):
+               cid_fields):
     """
         main function
     """
@@ -208,8 +191,7 @@ async def main(cred_file_path,
                                subject_file_path,
                                body_file_path,
                                cred_dict,
-                               cid_fields,)
-    # print(f"printing emails_msg dict\n{emails_msg}")
+                               cid_fields)
     count_successful = 0
     count_unsuccessful = 0
     for email, msg in emails_msg.items():
@@ -218,8 +200,9 @@ async def main(cred_file_path,
             print(f"Mail sent to {email}")
             count_successful += 1
 
-        except Exception as identifier:
-            print(f"Failed to send mail to {email}\n{identifier}")
+        except Exception as error:
+            print(f"Failed to send mail to {email}\n"
+                  f"{type(error)}: {error}")
             count_unsuccessful += 1
 
     await result(count_successful, count_unsuccessful)
