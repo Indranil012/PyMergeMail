@@ -49,31 +49,26 @@ async def cred(cred_file_path, change=False):
 
     return cred_dict
 
-async def get_template_dir(path):
+async def get_template(file_path, var_only=False):
     """
     todo
     """
-    return os.path.dirname(path)
-
-async def get_file_name(path):
-    """
-    todo
-    """
-    return os.path.basename(path)
-    # return os.path.splitext(fname_with_ext)[0]
-
-async def get_env(template_directory):
-    """
-    todo
-    """
+    template_dir = os.path.dirname(file_path)
     env = Environment(
         loader=FileSystemLoader(
-            template_directory),
+            template_dir),
                       autoescape=select_autoescape())
+    file_name = os.path.basename(file_path)
 
-    return env
+    if var_only is True:
+        source = env.loader.get_source(env, file_name)
+        parced_content = env.parse(source)
+        return meta.find_undeclared_variables(parced_content)
 
-async def get_context(row, 
+    else:
+        return env.get_template(file_name)
+
+async def get_context(row,
                       subject_file_path,
                       body_file_path,
                       cid_fields,
@@ -81,17 +76,9 @@ async def get_context(row,
     """
         obtain required info from excel
     """
-    template_directory = await get_template_dir(body_file_path)
-    env = await get_env(template_directory)
-
-    body_file_name = await get_file_name(body_file_path)
-    body_source = env.loader.get_source(env, body_file_name)
-
-    subject_file_name = await get_file_name(subject_file_path)
-    subject_source = env.loader.get_source(env, subject_file_name)
-
-    parsed_content = env.parse(body_source + subject_source)
-    variables = meta.find_undeclared_variables(parsed_content)
+    body_var = await get_template(body_file_path, var_only=True)
+    subject_var = await get_template(subject_file_path, var_only=True)
+    variables = body_var | subject_var
 
     context = {}
     for variable in variables:
@@ -120,14 +107,9 @@ async def setup_msg(row,
                                               subject_file_path,
                                               body_file_path,
                                               cid_fields)
-    template_directory = await get_template_dir(body_file_path)
-    env = await get_env(template_directory)
-
-    body_file_name = await get_file_name(body_file_path)
-    subject_file_name = await get_file_name(subject_file_path)
-
-    subject = env.get_template(subject_file_name)
-    body = env.get_template(body_file_name)
+    subject = await get_template(subject_file_path)
+    body = await get_template(body_file_path)
+    body = body.render(context)
 
     msg = EmailMessage()
     msg["From"] = f"{cred_dict['alias']}<{cred_dict['email']}>"
@@ -139,8 +121,6 @@ async def setup_msg(row,
     msg.set_content("""
         This is a HTML mail please use supported client to render properly
                     """)
-
-    body = body.render(context)
     msg.add_alternative(body, "html")
 
     for path, cid in img_path_cid.items():
@@ -169,7 +149,7 @@ async def get_msg(data_file_path,
                   cid_fields,
                   ):
     """
-       get address and msg dict as key, value
+       get address(str) : msg(obj) dict.
     """
     df = pd.read_excel(data_file_path)
     df.columns = df.columns.str.lower()
@@ -202,6 +182,9 @@ async def login(cred_dict):
     return smtp
 
 async def result(count_successful, count_unsuccessful):
+    """
+    todo
+    """
     total_email = count_successful + count_unsuccessful
     if count_unsuccessful == 0:
         print(f"{count_successful}/{total_email} Mail successfully sent ")
@@ -219,8 +202,6 @@ async def main(cred_file_path,
         main function
     """
     cred_dict = await cred(cred_file_path) # pass arg change=True to change cred.
-    print(cred_dict)
-
     smtp = await login(cred_dict)
 
     emails_msg = await get_msg(data_file_path,
@@ -232,7 +213,6 @@ async def main(cred_file_path,
     count_successful = 0
     count_unsuccessful = 0
     for email, msg in emails_msg.items():
-        # await send_mail(smtp, msg, email)
         try:
             await smtp.send_message(msg)
             print(f"Mail sent to {email}")
