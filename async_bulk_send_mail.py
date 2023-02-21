@@ -2,7 +2,7 @@
 this module can send bulk personalized mail with excel data
 
 Author: Indranil012
-version: 0.0.2
+version: 0.0.3
 """
 
 import os
@@ -16,6 +16,12 @@ from jinja2 import (Environment,
                     select_autoescape,
                     meta)
 import pandas as pd
+
+def color_print(text, color):
+    """
+    can print color text
+    """
+    return f"\x1b[38;5;{color}m{text}\x1b[m"
 
 async def cred(cred_file_path, change=False):
     """
@@ -54,17 +60,22 @@ async def get_template(file_path, var_only=False):
 
     return env.get_template(file_name)
 
+async def get_var(subject_file_path,
+                  body_file_path):
+    """
+    todo
+    """
+    body_var = await get_template(body_file_path, var_only=True)
+    subject_var = await get_template(subject_file_path, var_only=True)
+
+    return body_var | subject_var
+
 async def get_context(row,
-                      subject_file_path,
-                      body_file_path,
+                      variables,
                       cid_fields):
     """
         obtain required info from excel
     """
-    body_var = await get_template(body_file_path, var_only=True)
-    subject_var = await get_template(subject_file_path, var_only=True)
-    variables = body_var | subject_var
-
     context = {}
     for variable in variables:
         if variable in row:
@@ -83,14 +94,11 @@ async def setup_msg(row,
                     subject_file_path,
                     body_file_path,
                     cred_dict,
-                    cid_fields):
+                    context,
+                    img_path_cid):
     """
         set email details
     """
-    context, img_path_cid = await get_context(row,
-                                              subject_file_path,
-                                              body_file_path,
-                                              cid_fields)
     subject = await get_template(subject_file_path)
     body = await get_template(body_file_path)
     body = body.render(context)
@@ -126,30 +134,6 @@ async def setup_msg(row,
 
     return msg
 
-async def get_msg(data_file_path,
-                  subject_file_path,
-                  body_file_path,
-                  cred_dict,
-                  cid_fields):
-    """
-       get address(str) : msg(obj) dict.
-    """
-    df = pd.read_excel(data_file_path)
-    df.columns = df.columns.str.lower()
-    print(f"\nPrinting source data...\n{df}")
-    emails_msg = {}
-    for _, row in df.iterrows():
-        msg = await setup_msg(row,
-                              subject_file_path,
-                              body_file_path,
-                              cred_dict,
-                              cid_fields)
-
-        emails_msg[row['email']] = msg
-        print(f"sending mail to {row['email']}")
-
-    return emails_msg
-
 async def login(cred_dict):
     """
         todo
@@ -168,10 +152,13 @@ async def result(count_successful, count_unsuccessful):
     """
     total_email = count_successful + count_unsuccessful
     if count_unsuccessful == 0:
-        print(f"{count_successful}/{total_email} Mail successfully sent ")
+        print(color_print(f"{count_successful}/{total_email} Mail successfully sent", 157))
+        # 157 for green
     else:
-        print(f"{count_successful}/{total_email} Mail successfully sent and")
-        print(f"{count_unsuccessful}/{total_email} Mail couldn't be sent ")
+        print(color_print(f"{count_successful}/{total_email} Mail successfully sent and", 157))
+        # 157 for green
+        print(color_print(f"{count_unsuccessful}/{total_email} Mail couldn't be sent", 160))
+        # 160 for red
 
 async def main(cred_file_path,
                data_file_path,
@@ -181,25 +168,41 @@ async def main(cred_file_path,
     """
         main function
     """
-    cred_dict = await cred(cred_file_path) # pass arg change=True to change cred.
     smtp = await login(cred_dict)
 
-    emails_msg = await get_msg(data_file_path,
-                               subject_file_path,
-                               body_file_path,
-                               cred_dict,
-                               cid_fields)
+    df = pd.read_excel(data_file_path)
+    df.columns = df.columns.str.lower()
+    print(f"\nPrinting source data...\n{df}")
+
+    cred_dict = await cred(cred_file_path) # pass arg change=True to change cred.
+    variables = await get_var(subject_file_path,
+                              body_file_path)
+
+    email_msg = {}
+    for _, row in df.iterrows():
+        context, img_path_cid = await get_context(row,
+                                                  variables,
+                                                  cid_fields)
+        msg = await setup_msg(row,
+                              subject_file_path,
+                              body_file_path,
+                              cred_dict,
+                              context,
+                              img_path_cid)
+        email_msg[row['email']] = msg
+
+
     count_successful = 0
     count_unsuccessful = 0
-    for email, msg in emails_msg.items():
+    for email, msg in email_msg.items():
+        print(f"Sending mail to {email}")
         try:
             await smtp.send_message(msg)
-            print(f"Mail sent to {email}")
+            print(color_print(f"Mail sent to {email}", 157))
             count_successful += 1
 
         except Exception as error:
-            print(f"Failed to send mail to {email}\n"
-                  f"{type(error)}: {error}")
+            print(color_print(f"Failed to send mail to {email}\n{type(error)}: {error}", 160))
             count_unsuccessful += 1
 
     await result(count_successful, count_unsuccessful)
