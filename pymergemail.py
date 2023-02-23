@@ -2,15 +2,16 @@
 this module can send bulk personalized mail with excel data
 
 Author: Indranil012
-version: 0.0.3
+version: 0.1.0
 """
 
 import os
+import sys
 import asyncio
 import json
 from email.message import EmailMessage
 from email.utils import make_msgid
-import aiosmtplib
+import smtplib
 from jinja2 import (Environment,
                     FileSystemLoader,
                     select_autoescape,
@@ -23,16 +24,26 @@ def color_print(text, color):
     """
     return f"\x1b[38;5;{color}m{text}\x1b[m"
 
+def check_blank(check_input, assign_with):
+    """
+    todo
+    """
+    if check_input=="":
+        check_input = assign_with
+
 async def cred(cred_file_path, change=False):
     """
-        print cred on terminal
+    print cred on terminal
     """
     with open(cred_file_path, encoding="UTF-8") as cred_file:
         cred_dict = json.load(cred_file)
     print(f"your current credentials: {cred_dict}")
     if change is True:
         input_email = input("Enter email: ")
+        check_blank(input_email, cred_dict['email'])
         input_pass = input("Enter app password: ")
+        check_blank(input_pass, cred_dict['pass'])
+
         with open(cred_file_path, "r+", encoding="UTF-8") as cred_file:
             cred_dict.update({"email":input_email, "pass":input_pass})
             cred_file.seek(0)
@@ -83,7 +94,7 @@ async def get_context(row,
 
     img_path_cid = {}
     for cid_field in cid_fields:
-        path = row[cid_field]
+        path = row.get(cid_field)
         img_cid = make_msgid(cid_field)
         img_path_cid[path] = img_cid
         context[cid_field] = img_cid[1:-1]
@@ -95,7 +106,8 @@ async def setup_msg(row,
                     body_file_path,
                     cred_dict,
                     context,
-                    img_path_cid):
+                    img_path_cid,
+                    attach_field):
     """
         set email details
     """
@@ -116,35 +128,32 @@ async def setup_msg(row,
     msg.add_alternative(body, "html")
 
     for path, cid in img_path_cid.items():
-        with open(path, "rb") as img:
-            msg.get_payload()[1].add_related(img.read(),
-                                             "image", "png",
-                                             cid=cid)
+        if path is not None:
+            with open(path, "rb") as img:
+                msg.get_payload()[1].add_related(img.read(),
+                                                 "image", "png",
+                                                 cid=cid)
 
     # for attachment
-    attach_paths = row['attachment'].split(', ')
-    for path in attach_paths:
-        with open(path, "rb") as attach_file:
-            attachment = attach_file.read()
+    if row.get(attach_field) is not None:
+        attach_paths = row[attach_field].split(', ')
+        for path in attach_paths:
+            try:
+                with open(path, "rb") as attach_file:
+                    attachment = attach_file.read()
 
-        msg.add_attachment(attachment,
-                           maintype="application",
-                           subtype="octet-stream",
-                           filename=os.path.basename(path))
+                msg.add_attachment(attachment,
+                                   maintype="application",
+                                   subtype="octet-stream",
+                                   filename=os.path.basename(path))
+            except Exception:
+                print(color_print("wrong attachment path", 160))
+                input_str = input("Do you want to send mail without attachment?\n"
+                                  "enter 'y' to continue: ")
+                if input_str != "y":
+                    sys.exit()
 
     return msg
-
-async def login(cred_dict):
-    """
-        todo
-    """
-    smtp = aiosmtplib.SMTP(hostname="smtp.gmail.com",
-                           username=cred_dict['email'],
-                           password=cred_dict['pass'])
-    await smtp.connect()
-    print("loged in")
-
-    return smtp
 
 async def result(count_successful, count_unsuccessful):
     """
@@ -164,17 +173,17 @@ async def main(cred_file_path,
                data_file_path,
                subject_file_path,
                body_file_path,
-               cid_fields):
+               cid_fields,
+               attach_field):
     """
         main function
     """
-    smtp = await login(cred_dict)
+    cred_dict = await cred(cred_file_path)
 
     df = pd.read_excel(data_file_path)
     df.columns = df.columns.str.lower()
     print(f"\nPrinting source data...\n{df}")
 
-    cred_dict = await cred(cred_file_path) # pass arg change=True to change cred.
     variables = await get_var(subject_file_path,
                               body_file_path)
 
@@ -188,36 +197,44 @@ async def main(cred_file_path,
                               body_file_path,
                               cred_dict,
                               context,
-                              img_path_cid)
+                              img_path_cid,
+                              attach_field)
         email_msg[row['email']] = msg
-
 
     count_successful = 0
     count_unsuccessful = 0
-    for email, msg in email_msg.items():
-        print(f"Sending mail to {email}")
-        try:
-            await smtp.send_message(msg)
-            print(color_print(f"Mail sent to {email}", 157))
-            count_successful += 1
+    with smtplib.SMTP_SSL("smtp.gmail.com") as smtp:
+        # smtp.set_debuglevel(1)
+        print("Trying to log in")
+        smtp.login(user=cred_dict['email'],
+                   password=cred_dict['pass'])
+        print(color_print("Log in successful", 157))
 
-        except Exception as error:
-            print(color_print(f"Failed to send mail to {email}\n{type(error)}: {error}", 160))
-            count_unsuccessful += 1
+        for email, msg in email_msg.items():
+            print(f"Sending mail to {email}")
+            try:
+                smtp.send_message(msg)
+                print(color_print(f"Mail sent to {email}", 157))
+                count_successful += 1
+
+            except Exception as error:
+                print(color_print(f"Failed to send mail to {email}\n{type(error)}: {error}", 160))
+                count_unsuccessful += 1
 
     await result(count_successful, count_unsuccessful)
-    await smtp.quit()
 
 
 if __name__ == "__main__":
-    CRED_FILE_PATH = "key.json"
-    DATA_FILE_PATH = "source_data.xlsx"
-    SUBJECT_FILE_PATH = "subject.txt"
-    BODY_FILE_PATH = "test.html"
+    CRED_FILE_PATH = "source_data/key.json"
+    DATA_FILE_PATH = "source_data/source_data.xlsx"
+    SUBJECT_FILE_PATH = "source_data/subject.txt"
+    BODY_FILE_PATH = "source_data/test.html"
     CID_FIELDS = ["img_path", "sig_path"]
+    ATTACH_FIELD = "attachment"
 
     asyncio.run(main=main(CRED_FILE_PATH,
                           DATA_FILE_PATH,
                           SUBJECT_FILE_PATH,
                           BODY_FILE_PATH,
-                          CID_FIELDS,))
+                          CID_FIELDS,
+                          ATTACH_FIELD))
