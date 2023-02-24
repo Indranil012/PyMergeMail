@@ -1,9 +1,14 @@
 [BASIC]
 # Good variable names which should always be accepted, separated by a comma.
-good-names=df,
+good-names=df,PyMergeMail,
+
+# [MASTER]
+# disable=missing-module-docstring
+# disable=missing-function-docstring
 
 [DESIGN]
 max-args=10
 
 [MESSAGES-CONTROL]
-disable=broad-except
+disable=broad-except,
+        missing-docstring,
