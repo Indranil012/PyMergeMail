@@ -2,7 +2,7 @@
 sample usecase
 """
 import asyncio
-from PyMergeMail.__main__ import send
+from PyMergeMail import send
 
 if __name__ == "__main__":
     CRED_FILE_PATH = "source_data/key.json"
