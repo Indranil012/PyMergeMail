@@ -1,6 +1,6 @@
 import json
 from PyMergeMail.check_blank import check_blank
-async def cred(cred_file_path, change=False):
+def cred(cred_file_path, change=False):
     """
     print cred on terminal
     """

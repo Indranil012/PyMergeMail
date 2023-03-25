@@ -1,8 +1,8 @@
 from email.utils import make_msgid
 
 async def get_context(row,
-                      variables,
-                      cid_fields):
+                      variables=None,
+                      cid_fields=None):
     """
         obtain required info from excel
     """

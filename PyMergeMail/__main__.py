@@ -1,62 +1,72 @@
 import smtplib
 import pandas as pd
 from PyMergeMail.cred import cred
-from PyMergeMail.get_var import get_var
+from PyMergeMail.get_template import get_variables
 from PyMergeMail.get_context import get_context
 from PyMergeMail.setup_msg import setup_msg
-from PyMergeMail.color_print import color_print
+from PyMergeMail.color_print import color_print, color
 from PyMergeMail.result import result
+from tqdm import tqdm
+# from PyMergeMail.split import split
 
-async def send(cred_file_path,
-               data_file_path,
-               subject_file_path,
-               body_file_path,
-               cid_fields,
-               attach_field):
-    """
-        main function
-    """
-    cred_dict = await cred(cred_file_path)
+class Send:
+    def __init__(self,
+                       cred_file_path,
+                       data_file_path,
+                       subject_file_path=None,
+                       body_file_path=None,
+                       cid_fields=None,
+                       attach_field=None):
+        self.cred_dict = cred(cred_file_path)
 
-    df = pd.read_excel(data_file_path)
-    df.columns = df.columns.str.lower()
-    print(f"\nPrinting source data...\n{df}")
+        self.df = pd.read_excel(data_file_path)
+        self.df.columns = self.df.columns.str.lower()
+        print(f"\nPrinting source data...\n{self.df}")
 
-    variables = await get_var(subject_file_path,
-                              body_file_path)
+        self.subject_file_path = subject_file_path
+        self.body_file_path = body_file_path
+        self.cid_fields = cid_fields
+        self.attach_field = attach_field
 
-    email_msg = {}
-    for _, row in df.iterrows():
-        context, img_path_cid = await get_context(row,
-                                                  variables,
-                                                  cid_fields)
-        msg = await setup_msg(row,
-                              subject_file_path,
-                              body_file_path,
-                              cred_dict,
-                              context,
-                              img_path_cid,
-                              attach_field)
-        email_msg[row['email']] = msg
+        self.count_successful = 0
+        self.count_unsuccessful = 0
 
-    count_successful = 0
-    count_unsuccessful = 0
-    with smtplib.SMTP_SSL("smtp.gmail.com") as smtp:
-        # smtp.set_debuglevel(1)
-        print("Trying to log in")
-        smtp.login(user=cred_dict['email'],
-                   password=cred_dict['pass'])
-        color_print("Log in successful", 157)
+    async def get_email_msg(self):
+        variables = await get_variables(self.subject_file_path, self.body_file_path)
+        email_msg = {}
+        for _, row in self.df.iterrows():
+            context, img_path_cid = await get_context(row, variables, self.cid_fields)
+            msg = await setup_msg(row,
+                                  self.cred_dict,
+                                  self.subject_file_path,
+                                  self.body_file_path,
+                                  context,
+                                  img_path_cid,
+                                  self.attach_field)
+            email_msg[row['email']] = msg
+        return email_msg
 
-        for email, msg in email_msg.items():
-            print(f"Sending mail to {email}")
-            try:
-                smtp.send_message(msg)
-                color_print(f"Mail sent to {email}", 157)
-                count_successful += 1
+    async def mail(self,):
+        """
+            main function
+        """
+        email_msg = await self.get_email_msg()
 
-            except Exception as error:
-                color_print(f"Failed to send mail to {email}\n{type(error)}: {error}", 160)
-                count_unsuccessful += 1
+        with smtplib.SMTP_SSL("smtp.gmail.com") as smtp:
+            # smtp.set_debuglevel(1)
+            print("Trying to log in")
+            smtp.login(user=self.cred_dict['email'], password=self.cred_dict['pass'])
+            color_print("Log in successful", 157)
 
-    await result(count_successful, count_unsuccessful)
+            for email, msg in tqdm(email_msg.items()):
+                tqdm.write(f"Sending mail to {email}")
+                try:
+                    smtp.send_message(msg)
+                    tqdm.write(color(f"Mail sent to {email}", 157))
+                    self.count_successful += 1
+
+                except Exception as error:
+                    tqdm.write(color(f"Failed to send mail to {email}\n{type(error)}: {error}", 160))
+                    self.count_unsuccessful += 1
+
+        await result(self.count_successful, self.count_unsuccessful)
