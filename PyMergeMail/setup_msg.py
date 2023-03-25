@@ -1,21 +1,21 @@
 import os
 import sys
 from email.message import EmailMessage
-from PyMergeMail.get_template import template
+from PyMergeMail.get_template import Template
 from PyMergeMail.color_print import color_print
 
-async def setup_msg(data_dict,
-                    cred_dict,
-                    subject_file_path=None,
-                    body_file_path=None,
-                    context=None,
-                    img_path_cid=None,
-                    attach_field=None):
+async def setup_msg(data_dict: dict,
+                    cred_dict: dict,
+                    subject_file_path: str = None,
+                    body_file_path: str = None,
+                    context: dict = None,
+                    img_path_cid: dict = None,
+                    attach_field: str = None):
     """
         set email details
     """
-    subject = await template(subject_file_path).get_template()
-    body = await template(body_file_path).get_template()
+    subject = await Template(subject_file_path).get_template()
+    body = await Template(body_file_path).get_template()
     body = body.render(context)
 
     msg = EmailMessage()
@@ -57,4 +57,3 @@ async def setup_msg(data_dict,
                     sys.exit()
 
     return msg
-

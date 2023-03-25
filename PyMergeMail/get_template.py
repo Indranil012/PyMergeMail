@@ -4,8 +4,8 @@ from jinja2 import (Environment,
                     select_autoescape,
                     meta)
 
-class template:
-    def __init__(self, file_path):
+class Template:
+    def __init__(self, file_path: str):
         template_dir = os.path.dirname(file_path)
         self.env = Environment(loader=FileSystemLoader(template_dir),
                           autoescape=select_autoescape())
@@ -29,7 +29,7 @@ async def get_variables(*args):
     """
     variables = []
     for arg in args:
-        vars_list = await template(arg).get_vars()
+        vars_list = await Template(arg).get_vars()
         variables.extend(vars_list)
 
     return variables

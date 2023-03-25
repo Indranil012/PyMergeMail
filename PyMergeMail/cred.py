@@ -1,6 +1,13 @@
 import json
-from PyMergeMail.check_blank import check_blank
-def cred(cred_file_path, change=False):
+
+def smart_input(msg: str, assign_with: str):
+    input_text = input(msg)
+    if input_text == "":
+        input_text = assign_with
+
+    return input_text
+
+def cred(cred_file_path: str, change: bool = False):
     """
     print cred on terminal
     """
@@ -8,10 +15,8 @@ def cred(cred_file_path, change=False):
         cred_dict = json.load(cred_file)
     print(f"your current credentials: {cred_dict}")
     if change is True:
-        input_email = input("Enter email: ")
-        check_blank(input_email, cred_dict['email'])
-        input_pass = input("Enter app password: ")
-        check_blank(input_pass, cred_dict['pass'])
+        input_email = smart_input("Enter email: ", cred_dict['email'])
+        input_pass = smart_input("Enter app password: ", cred_dict['pass'])
 
         with open(cred_file_path, "r+", encoding="UTF-8") as cred_file:
             cred_dict.update({"email":input_email, "pass":input_pass})

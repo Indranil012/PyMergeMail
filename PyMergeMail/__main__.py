@@ -11,12 +11,12 @@ from tqdm import tqdm
 
 class Send:
     def __init__(self,
-                       cred_file_path,
-                       data_file_path,
-                       subject_file_path=None,
-                       body_file_path=None,
-                       cid_fields=None,
-                       attach_field=None):
+                 cred_file_path: str,
+                 data_file_path: str,
+                 subject_file_path: str = None,
+                 body_file_path: str = None,
+                 cid_fields: list = None,
+                 attach_field: str = None):
         self.cred_dict = cred(cred_file_path)
 
         self.df = pd.read_excel(data_file_path)

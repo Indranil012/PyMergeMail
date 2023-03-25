@@ -1,9 +1,9 @@
-def color_print(text, colour):
+def color_print(text: str, colour: int):
     """
     can print color text
     """
     print(f"\x1b[38;5;{colour}m{text}\x1b[m")
 
-def color(text, colour):
+def color(text: str, colour: int):
     return f"\x1b[38;5;{colour}m{text}\x1b[m"
 

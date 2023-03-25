@@ -1,6 +1,6 @@
 from PyMergeMail.color_print import color_print
 
-async def result(count_successful, count_unsuccessful):
+async def result(count_successful: int, count_unsuccessful: int):
     """
     todo
     """
