@@ -2,4 +2,4 @@
 project: PyMerrgeMail
 version: 0.1.0
 """
-from PyMergeMail.__main__ import Send
+from PyMergeMail.main import mail

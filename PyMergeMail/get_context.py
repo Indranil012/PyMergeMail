@@ -1,21 +1,29 @@
 from email.utils import make_msgid
 
-async def get_context(data_dict: dict,
-                      variables: list = None,
-                      cid_fields: list = None):
-    """
-        obtain required info from excel
-    """
-    context = {}
-    for variable in variables:
-        if variable in data_dict:
-            context[variable] = data_dict[variable]
+class Context:
+    def __init__(self,
+                 recv_data: dict,
+                 variables: list,
+                 cid_fields: list):
 
-    img_path_cid = {}
-    for cid_field in cid_fields:
-        path = data_dict.get(cid_field)
-        img_cid = make_msgid(cid_field)
-        img_path_cid[path] = img_cid
-        context[cid_field] = img_cid[1:-1]
+        self.context = {}
+        self.img_path_cid = {}
 
-    return context, img_path_cid
+        for variable in variables:
+            if variable in recv_data:
+                self.context[variable] = recv_data.get(variable)
+
+        for cid_field in cid_fields:
+            path = recv_data.get(cid_field)
+            img_cid = make_msgid(cid_field)
+            self.img_path_cid[path] = img_cid
+            self.context[cid_field] = img_cid[1:-1]
+
+    async def get_context(self) -> dict:
+        """
+            obtain required info from excel
+        """
+        return self.context
+
+    async def get_img_cid(self) -> dict:
+        return self.img_path_cid

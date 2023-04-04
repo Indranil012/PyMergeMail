@@ -1,35 +1,33 @@
-import os
 from jinja2 import (Environment,
-                    FileSystemLoader,
-                    select_autoescape,
+                    Template,
                     meta)
 
-class Template:
+class ToTemplate:
     def __init__(self, file_path: str):
-        template_dir = os.path.dirname(file_path)
-        self.env = Environment(loader=FileSystemLoader(template_dir),
-                          autoescape=select_autoescape())
-        self.file_name = os.path.basename(file_path)
+        self.env = Environment()
 
-    async def get_template(self):
+        with open(f"{file_path}", encoding = 'UTF-8') as file:
+            self.template = Template(file.read())
+
+    def get_template(self):
         """
         todo
         """
-        return self.env.get_template(self.file_name)
+        return self.template
 
-    async def get_vars(self):
-        source = self.env.loader.get_source(self.env, self.file_name)
-        parced_content = self.env.parse(source)
+    def get_variables__(self) -> list:
+        parced_content = self.env.parse(self.template)
+        variables_ = meta.find_undeclared_variables(parced_content)
 
-        return meta.find_undeclared_variables(parced_content)
+        return variables_
 
-async def get_variables(*args):
+def get_variables(*args) -> list:
     """
     todo
     """
     variables = []
     for arg in args:
-        vars_list = await Template(arg).get_vars()
-        variables.extend(vars_list)
+        variables_ = ToTemplate(arg).get_variables__()
+        variables.extend(variables_)
 
     return variables
