@@ -9,10 +9,10 @@ from tqdm import tqdm
 from pandas import read_excel
 # from PyMergeMail.split import split
 
-async def mail(cred_file_path, 
-               data_file_path = None, 
-               subject_file_path = None, 
-               body_file_path = None, 
+async def mail(cred_file_path,
+               data_file_path,
+               subject_file_path, 
+               body_file_path, 
                cid_fields = None, 
                attach_field = None):
     """main function
