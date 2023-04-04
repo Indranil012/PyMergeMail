@@ -13,11 +13,12 @@ class Context:
             if variable in recv_data:
                 self.context[variable] = recv_data.get(variable)
 
-        for cid_field in cid_fields:
-            path = recv_data.get(cid_field)
-            img_cid = make_msgid(cid_field)
-            self.img_path_cid[path] = img_cid
-            self.context[cid_field] = img_cid[1:-1]
+        if cid_fields is not None:
+            for cid_field in cid_fields:
+                path = recv_data.get(cid_field)
+                img_cid = make_msgid(cid_field)
+                self.img_path_cid[path] = img_cid
+                self.context[cid_field] = img_cid[1:-1]
 
     async def get_context(self) -> dict:
         """

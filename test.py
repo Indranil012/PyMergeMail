@@ -16,4 +16,5 @@ asyncio.run(mail(CRED_FILE_PATH,
                  SUBJECT_FILE_PATH,
                  BODY_FILE_PATH,
                  CID_FIELDS,
-                 ATTACH_FIELD), debug=True)
+                 ATTACH_FIELD
+                 ), debug=True)

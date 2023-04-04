@@ -3,31 +3,32 @@ from jinja2 import (Environment,
                     meta)
 
 class ToTemplate:
-    def __init__(self, file_path: str):
+    def __init__(self):
         self.env = Environment()
 
-        with open(f"{file_path}", encoding = 'UTF-8') as file:
-            self.template = Template(file.read())
-
-    def get_template(self):
+    def get_template(self, file_path: str):
         """
         todo
         """
-        return self.template
+        with open(file_path, encoding = 'UTF-8') as file:
+            template = Template(file.read())
 
-    def get_variables__(self) -> list:
-        parced_content = self.env.parse(self.template)
-        variables_ = meta.find_undeclared_variables(parced_content)
+        return template
 
-        return variables_
+    def __get_variables(self, file_path: str) -> list:
+        with open(file_path, encoding = 'UTF-8') as file:
+            parsed = self.env.parse(file.read())
+            variables = meta.find_undeclared_variables(parsed)
 
-def get_variables(*args) -> list:
-    """
-    todo
-    """
-    variables = []
-    for arg in args:
-        variables_ = ToTemplate(arg).get_variables__()
-        variables.extend(variables_)
+        return variables
 
-    return variables
+    def get_variables(self, *args) -> list:
+        """
+        todo
+        """
+        variables = []
+        for arg in args:
+            variables_ = self.__get_variables(arg)
+            variables.extend(variables_)
+
+        return variables

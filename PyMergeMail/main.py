@@ -1,5 +1,5 @@
 import smtplib
-from PyMergeMail.get_template import ToTemplate, get_variables
+from PyMergeMail.get_template import ToTemplate
 from PyMergeMail.get_context import Context
 from PyMergeMail.setup_msg import setup_msg
 from PyMergeMail.color_print import color_print, color
@@ -18,9 +18,9 @@ async def mail(cred_file_path,
     """main function
     """
     cred = get_cred(cred_file_path)
-    subject_template = ToTemplate(subject_file_path).get_template() 
-    body_template = ToTemplate(body_file_path).get_template() 
-    variables = get_variables(subject_file_path, body_file_path)
+    subject_template = ToTemplate().get_template(subject_file_path) 
+    body_template = ToTemplate().get_template(body_file_path)
+    variables = ToTemplate().get_variables(subject_file_path, body_file_path)
 
     data_frame = read_excel(data_file_path)
     data_frame.columns = data_frame.columns.str.lower()

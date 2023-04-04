@@ -33,20 +33,21 @@ async def setup_msg(cred: dict,
                                                  cid=cid)
 
     # for attachment
-    for path in attach_paths:
-        try:
-            with open(path, "rb") as attach_file:
-                attachment = attach_file.read()
+    if attach_paths is not None:
+        for path in attach_paths:
+            try:
+                with open(path, "rb") as attach_file:
+                    attachment = attach_file.read()
 
-            msg.add_attachment(attachment,
-                               maintype="application",
-                               subtype="octet-stream",
-                               filename=os.path.basename(path))
-        except Exception:
-            color_print("wrong attachment path", 160)
-            input_str = input("Do you want to send mail without attachment?\n"
-                              "enter 'y' to continue: ")
-            if input_str != "y":
-                sys.exit()
+                msg.add_attachment(attachment,
+                                   maintype="application",
+                                   subtype="octet-stream",
+                                   filename=os.path.basename(path))
+            except Exception:
+                color_print("wrong attachment path", 160)
+                input_str = input("Do you want to send mail without attachment?\n"
+                                  "enter 'y' to continue: ")
+                if input_str != "y":
+                    sys.exit()
 
     return msg
