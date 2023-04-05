@@ -1,10 +1,10 @@
 import smtplib
-from PyMergeMail.get_template import ToTemplate
-from PyMergeMail.get_context import Context
+from PyMergeMail.template import ToTemplate
+from PyMergeMail.context import Context
 from PyMergeMail.setup_msg import setup_msg
 from PyMergeMail.color_print import color_print, color
 from PyMergeMail.result import result
-from PyMergeMail.cred import get_cred
+from PyMergeMail.cred import Cred
 from tqdm import tqdm
 from pandas import read_excel
 # from PyMergeMail.split import split
@@ -17,10 +17,10 @@ async def mail(cred_file_path,
                attach_field = None):
     """main function
     """
-    cred = get_cred(cred_file_path)
-    subject_template = ToTemplate().get_template(subject_file_path) 
-    body_template = ToTemplate().get_template(body_file_path)
-    variables = ToTemplate().get_variables(subject_file_path, body_file_path)
+    CRED = await Cred(cred_file_path).get_cred
+    SUBJECT_TEMPLATE = await ToTemplate.get_template(subject_file_path) 
+    BODY_TEMPLATE = await ToTemplate.get_template(body_file_path)
+    VARIABLES = await ToTemplate.get_variables(subject_file_path, body_file_path)
 
     data_frame = read_excel(data_file_path)
     data_frame.columns = data_frame.columns.str.lower()
@@ -28,16 +28,16 @@ async def mail(cred_file_path,
 
     email_msg = {}
     for _, recv_data in data_frame.iterrows():
-        Context_ = Context(recv_data, variables, cid_fields)
-        context = await Context_.get_context()
-        img_cid =  await Context_.get_img_cid()
-        subject = subject_template.render(context)
-        body = body_template.render(context)
+        Context_ = Context(recv_data, VARIABLES, cid_fields)
+        context = await Context_.get_context
+        img_cid =  await Context_.get_img_cid
+        subject = await SUBJECT_TEMPLATE.render_async(context)
+        body = await BODY_TEMPLATE.render_async(context)
         
         if (attach_paths := recv_data.get(attach_field)) is not None:
             attach_paths = attach_paths.split(', ')
 
-        msg = await setup_msg(cred, recv_data, subject, body, img_cid, attach_paths)
+        msg = await setup_msg(CRED, recv_data, subject, body, img_cid, attach_paths)
         email_msg[recv_data['email']] = msg
 
     count_successful = 0
@@ -46,7 +46,7 @@ async def mail(cred_file_path,
     with smtplib.SMTP_SSL("smtp.gmail.com") as smtp:
         # smtp.set_debuglevel(1)
         print("Trying to log in")
-        smtp.login(user=cred['email'], password=cred['pass'])
+        smtp.login(user=CRED['email'], password=CRED['pass'])
         color_print("Log in successful", 157)
 
         for email, msg in tqdm(email_msg.items()):

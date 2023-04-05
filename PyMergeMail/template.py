@@ -3,32 +3,34 @@ from jinja2 import (Environment,
                     meta)
 
 class ToTemplate:
-    def __init__(self):
-        self.env = Environment()
+    env = Environment(enable_async = True)
 
-    def get_template(self, file_path: str):
+    @classmethod
+    async def get_template(cls, file_path: str):
         """
         todo
         """
         with open(file_path, encoding = 'UTF-8') as file:
-            template = Template(file.read())
+            template = Template(file.read(), autoescape = True, enable_async = True)
 
         return template
 
-    def __get_variables(self, file_path: str) -> list:
+    @classmethod
+    async def __get_variables(cls, file_path: str) -> list:
         with open(file_path, encoding = 'UTF-8') as file:
-            parsed = self.env.parse(file.read())
+            parsed = cls.env.parse(file.read())
             variables = meta.find_undeclared_variables(parsed)
 
         return variables
 
-    def get_variables(self, *args) -> list:
+    @classmethod
+    async def get_variables(cls, *args) -> list:
         """
         todo
         """
         variables = []
         for arg in args:
-            variables_ = self.__get_variables(arg)
+            variables_ = await cls.__get_variables(arg)
             variables.extend(variables_)
 
         return variables

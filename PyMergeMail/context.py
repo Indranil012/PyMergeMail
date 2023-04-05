@@ -20,11 +20,13 @@ class Context:
                 self.img_path_cid[path] = img_cid
                 self.context[cid_field] = img_cid[1:-1]
 
+    @property
     async def get_context(self) -> dict:
         """
             obtain required info from excel
         """
         return self.context
 
+    @property
     async def get_img_cid(self) -> dict:
         return self.img_path_cid
