@@ -1,6 +1,6 @@
 [project]
 name = "PyMergeMail"
-version = "0.0.1-a3"
+version = "0.0.1-a4"
 description = "A simple module to send bulk personalized html mail with jinja2 template"
 readme = "README.md"
 authors = [{ name = "Indranil", email = "indranilchowdhury0@gmail.com" }]
