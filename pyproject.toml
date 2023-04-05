@@ -1,0 +1,27 @@
+[project]
+name = "PyMergeMail"
+version = "0.0.1-a3"
+description = "A simple module to send bulk personalized html mail with jinja2 template"
+readme = "README.md"
+authors = [{ name = "Indranil", email = "indranilchowdhury0@gmail.com" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["email", "html", "mail", "merge"]
+dependencies = [
+    'pandas',
+    'jinja2',
+    'tqdm',
+]
+requires-python = ">=3.9"
+
+[tool.setuptools]
+package-dir = {"PyMergeMail" = "PyMergeMail"}
+    # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+[project.urls]
+Homepage = "https://github.com/Indranil012/PyMergeMail"
+
+[project.scripts]
+pymergemail = "PyMergeMail.main:mail"

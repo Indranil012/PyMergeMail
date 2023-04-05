@@ -1,3 +1,5 @@
 /image
 /source_data
 *__pycache__*
+/dist
+/PyMergeMail.egg-info

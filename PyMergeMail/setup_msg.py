@@ -13,12 +13,11 @@ async def setup_msg(cred: dict,
         set email details
     """
     msg = EmailMessage()
-    msg["From"] = f"{cred['alias']}<{cred['email']}>"
+    msg["From"] = f"{cred.get('alias')}<{cred.get('email')}>"
     msg["Subject"] = subject
-    msg["To"] = f"{recv_data['name']}<{recv_data['email']}>"
-    msg["cc"] = recv_data['cc']
-    msg["Bcc"] = recv_data['bcc']
-
+    msg["To"] = f"{recv_data.get('name')}<{recv_data.get('email')}>"
+    msg["cc"] = recv_data.get('cc')
+    msg["Bcc"] = recv_data.get('bcc')
     msg.set_content("""
         This is a HTML mail please use supported client to render properly
                     """)
