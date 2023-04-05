@@ -14,7 +14,8 @@ ATTACH_FIELD = "attachment"
 asyncio.run(mail(CRED_FILE_PATH,
                  DATA_FILE_PATH,
                  SUBJECT_FILE_PATH,
-                 BODY_FILE_PATH,
-                 CID_FIELDS,
-                 ATTACH_FIELD
-                 ), debug=True)
+                 BODY_FILE_PATH, # optional
+                 CID_FIELDS,     # optional
+                 ATTACH_FIELD    # optional
+            ), debug=True
+        )
