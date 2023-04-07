@@ -3,3 +3,4 @@
 *__pycache__*
 /dist
 /PyMergeMail.egg-info
+test.py

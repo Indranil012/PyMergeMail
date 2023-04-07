@@ -12,7 +12,7 @@ from PyMergeMail import mail
 CRED_FILE_PATH = "key.json"
 DATA_FILE_PATH = "source_data.xlsx"
 SUBJECT_FILE_PATH = "subject.txt"
-BODY_FILE_PATH = "test.html"
+BODY_FILE_PATH = "body.html"
 CID_FIELDS = ["img_path", "sig_path"]
 ATTACH_FIELD = "attachment"
 
